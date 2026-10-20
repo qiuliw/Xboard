@@ -18,6 +18,8 @@ class RealNameController extends Controller
     public function status(Request $request)
     {
         $user = $request->user();
+        $this->realNameService->syncPendingForUser($user);
+        $user->refresh();
 
         return $this->success([
             'required' => $this->realNameService->isRequired(),
@@ -49,31 +51,32 @@ class RealNameController extends Controller
         $certNo = strtoupper(trim($request->input('cert_no')));
         $hash = $this->realNameService->hashIdNumber($certNo);
 
-        $exists = User::where('id_number_hash', $hash)
-            ->where('id', '!=', $user->id)
-            ->exists();
-        if ($exists) {
+        if (User::where('id_number_hash', $hash)->where('id', '!=', $user->id)->exists()) {
             throw new ApiException(__('该身份证号已绑定其他账号'));
         }
 
         try {
             $client = $this->realNameService->makeClient();
-            $result = $client->preconsult($realName, $certNo);
-            $verifyId = $result['verify_id'];
-            $callbackUrl = $this->realNameService->callbackUrl();
-            $authUrl = $client->buildAuthUrl($verifyId, $callbackUrl);
+            $outerOrderNo = $client->generateOuterOrderNo();
+            $callbackUrl = $this->realNameService->callbackUrl()
+                . '?order_no=' . rawurlencode($outerOrderNo);
 
-            $this->realNameService->cachePending($verifyId, [
+            $result = $client->initialize($realName, $certNo, $callbackUrl, $outerOrderNo);
+            $certifyId = $result['certify_id'];
+
+            $this->realNameService->cachePending($certifyId, [
                 'user_id' => $user->id,
                 'real_name' => $realName,
                 'cert_no' => $certNo,
                 'id_number_hash' => $hash,
                 'id_number_mask' => $this->realNameService->maskIdNumber($certNo),
+                'outer_order_no' => $outerOrderNo,
+                'certify_id' => $certifyId,
             ]);
 
             return $this->success([
-                'verify_id' => $verifyId,
-                'auth_url' => $authUrl,
+                'verify_id' => $certifyId,
+                'auth_url' => $this->realNameService->startUrl($outerOrderNo),
             ]);
         } catch (ApiException $e) {
             throw $e;

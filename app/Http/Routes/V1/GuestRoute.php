@@ -23,7 +23,7 @@ class GuestRoute
             $router->match(['get', 'post'], '/payment/notify/{method}/{uuid}', [PaymentController::class, 'notify']);
             // Comm
             $router->get('/comm/config', [CommController::class, 'config']);
-            // Real name (Alipay OAuth callback)
+            $router->get('/realName/start', [RealNameController::class, 'start']);
             $router->get('/realName/callback', [RealNameController::class, 'callback']);
         });
     }

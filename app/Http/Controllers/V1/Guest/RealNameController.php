@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\V1\Guest;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Services\RealName\RealNameService;
 use Illuminate\Http\Request;
 
@@ -14,57 +13,67 @@ class RealNameController extends Controller
     ) {
     }
 
-    /**
-     * 支付宝授权回调：完成证件比对并标记用户已实名
-     */
-    public function callback(Request $request)
+    /** 短链入口，302 到支付宝认证页 */
+    public function start(Request $request)
     {
-        $authCode = $request->input('auth_code');
-        $verifyId = $request->input('cert_verify_id') ?: $request->input('verify_id');
+        $orderNo = (string) $request->input('order_no', '');
+        $certifyId = (string) $request->input('certify_id', '');
 
-        if (!$authCode || !$verifyId) {
-            return $this->htmlPage(false, '缺少授权参数，请返回客户端重新发起实名认证。');
+        $pending = null;
+        if ($orderNo !== '') {
+            $pending = $this->realNameService->getPendingByOrderNo($orderNo);
+            $certifyId = (string) ($pending['certify_id'] ?? $certifyId);
+        } elseif ($certifyId !== '') {
+            $pending = $this->realNameService->getPending($certifyId);
         }
 
-        $pending = $this->realNameService->getPending($verifyId);
-        if (!$pending) {
+        if (!$pending || $certifyId === '') {
+            return $this->htmlPage(false, '实名认证链接已失效，请返回客户端重新发起。');
+        }
+
+        try {
+            $callbackUrl = $this->realNameService->callbackUrl()
+                . '?order_no=' . rawurlencode((string) ($pending['outer_order_no'] ?? $orderNo));
+            return redirect()->away(
+                $this->realNameService->makeClient()->buildCertifyUrl($certifyId, $callbackUrl)
+            );
+        } catch (\Throwable $e) {
+            return $this->htmlPage(false, $e->getMessage() ?: '无法打开支付宝认证页');
+        }
+    }
+
+    /** 认证回跳：查询结果并落库 */
+    public function callback(Request $request)
+    {
+        $certifyId = $request->input('certify_id')
+            ?: $request->input('cert_verify_id')
+            ?: $request->input('verify_id');
+        $orderNo = $request->input('order_no');
+
+        $pending = null;
+        if ($certifyId) {
+            $pending = $this->realNameService->getPending((string) $certifyId);
+            if ($pending) {
+                $pending['certify_id'] = (string) $certifyId;
+            }
+        }
+        if (!$pending && $orderNo) {
+            $pending = $this->realNameService->getPendingByOrderNo((string) $orderNo);
+            $certifyId = $pending['certify_id'] ?? $certifyId;
+        }
+
+        if (!$pending || !$certifyId) {
             return $this->htmlPage(false, '实名认证会话已过期，请返回客户端重新发起。');
         }
 
         try {
-            $client = $this->realNameService->makeClient();
-            $token = $client->exchangeToken($authCode);
-            $consult = $client->consult($verifyId, $token['access_token']);
-
-            if (!$consult['passed']) {
-                $reason = $consult['fail_reason'] ?: '实名信息不一致';
-                return $this->htmlPage(false, $reason . '，请返回客户端重试。');
+            if ($this->realNameService->completeIfPassed((string) $certifyId)) {
+                return $this->htmlPage(true, '实名认证成功，请返回客户端继续操作。');
             }
 
-            $user = User::find($pending['user_id']);
-            if (!$user) {
-                return $this->htmlPage(false, '用户不存在。');
-            }
-
-            if (!$user->real_name_verified) {
-                $conflict = User::where('id_number_hash', $pending['id_number_hash'])
-                    ->where('id', '!=', $user->id)
-                    ->exists();
-                if ($conflict) {
-                    return $this->htmlPage(false, '该身份证号已绑定其他账号。');
-                }
-
-                $user->real_name_verified = true;
-                $user->real_name = $pending['real_name'];
-                $user->id_number_hash = $pending['id_number_hash'];
-                $user->id_number_mask = $pending['id_number_mask'];
-                $user->real_name_verified_at = time();
-                $user->save();
-            }
-
-            $this->realNameService->forgetPending($verifyId);
-
-            return $this->htmlPage(true, '实名认证成功，请返回客户端继续操作。');
+            $result = $this->realNameService->makeClient()->query((string) $certifyId);
+            $reason = $result['fail_reason'] ?: '尚未完成人脸认证或认证未通过';
+            return $this->htmlPage(false, $reason . '，请返回客户端重试或等待自动刷新。');
         } catch (\Throwable $e) {
             return $this->htmlPage(false, $e->getMessage() ?: '实名认证失败，请稍后重试。');
         }
