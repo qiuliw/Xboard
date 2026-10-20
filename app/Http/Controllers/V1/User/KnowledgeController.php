@@ -89,6 +89,10 @@ class KnowledgeController extends Controller
         if (!$this->userService->isAvailable($user)) {
             $this->formatAccessData($knowledge['body']);
         }
+        // Only gate articles which actually disclose a subscription credential.
+        if (preg_match('/\{\{(?:subscribeUrl|urlEncodeSubscribeUrl|safeBase64SubscribeUrl)\}\}/', $knowledge['body'])) {
+            app(\App\Services\Realname\RealnamePolicy::class)->subscription($user);
+        }
         $subscribeUrl = Helper::getSubscribeUrl($user['token']);
         $knowledge['body'] = $this->replacePlaceholders($knowledge['body'], $subscribeUrl);
 

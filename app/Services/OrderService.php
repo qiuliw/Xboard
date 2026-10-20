@@ -64,6 +64,7 @@ class OrderService
         string $period,
         ?string $couponCode = null,
     ): Order {
+        app(\App\Services\Realname\RealnamePolicy::class)->purchase($user);
         $userService = app(UserService::class);
         $planService = new PlanService($plan);
 

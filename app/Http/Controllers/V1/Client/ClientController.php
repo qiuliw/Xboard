@@ -53,6 +53,7 @@ class ClientController extends Controller
 
     public function doSubscribe(Request $request, $user, $servers = null)
     {
+        app(\App\Services\Realname\RealnamePolicy::class)->subscription($user);
         if ($servers === null) {
             $servers = ServerService::getAvailableServers($user);
             $servers = HookManager::filter('client.subscribe.servers', $servers, $user, $request);

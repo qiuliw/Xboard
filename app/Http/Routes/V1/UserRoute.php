@@ -24,6 +24,10 @@ class UserRoute
             'prefix' => 'user',
             'middleware' => 'user'
         ], function ($router) {
+            // Real-name verification (authenticated session user only)
+            $router->get('/realname/status', [\App\Http\Controllers\V1\User\RealnameController::class, 'status']);
+            $router->post('/realname/start', [\App\Http\Controllers\V1\User\RealnameController::class, 'start']);
+            $router->post('/realname/refresh', [\App\Http\Controllers\V1\User\RealnameController::class, 'refresh']);
             // User
             $router->get('/resetSecurity', [UserController::class, 'resetSecurity']);
             $router->get('/info', [UserController::class, 'info']);

@@ -81,6 +81,8 @@ class GiftCardController extends Controller
                 'template_name' => $result['template_name'],
             ]);
 
+        } catch (\App\Services\Realname\RealnameException $e) {
+            throw $e;
         } catch (ApiException $e) {
             return $this->fail([400, $e->getMessage()]);
         } catch (\Exception $e) {

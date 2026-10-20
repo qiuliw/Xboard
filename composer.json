@@ -12,6 +12,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "alipaysdk/easysdk": "^2.2.3",
         "bacon/bacon-qr-code": "^2.0",
         "doctrine/dbal": "^4.0",
         "google/cloud-storage": "^1.35",

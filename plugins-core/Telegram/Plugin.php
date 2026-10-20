@@ -358,6 +358,12 @@ class Plugin extends AbstractPlugin
       return;
     }
 
+    try {
+      app(\App\Services\Realname\RealnamePolicy::class)->subscription($user);
+    } catch (\App\Services\Realname\RealnameException $e) {
+      $this->sendMessage($msg, $e->getMessage());
+      return;
+    }
     $subscribeUrl = Helper::getSubscribeUrl($user->token);
     $text = sprintf("🔗 您的订阅链接：\n\n%s", $subscribeUrl);
 

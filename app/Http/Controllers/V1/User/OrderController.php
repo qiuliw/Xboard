@@ -129,6 +129,7 @@ class OrderController extends Controller
         if ($order->total_amount < 0) {
             return $this->fail([400, __('Order amount is invalid')]);
         }
+        app(\App\Services\Realname\RealnamePolicy::class)->purchase($request->user());
         // free process
         if ($order->total_amount <= 0) {
             $orderService = new OrderService($order);

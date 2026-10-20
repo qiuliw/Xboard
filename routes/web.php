@@ -19,6 +19,14 @@ use Illuminate\Support\Facades\File;
 */
 
 
+// Returning from Alipay only restores the UI; the API must query the result.
+Route::get('/realname/return', function () {
+    return response()->view('realname.return')
+        ->header('Cache-Control', 'no-store')
+        ->header('Referrer-Policy', 'no-referrer')
+        ->header('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'");
+});
+
 Route::get('/', function (Request $request) {
     if (admin_setting('app_url') && admin_setting('safe_mode_enable', 0)) {
         $requestHost = $request->getHost();

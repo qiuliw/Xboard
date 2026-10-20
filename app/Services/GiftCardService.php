@@ -124,6 +124,12 @@ class GiftCardService
             $this->validate();
 
             $actualRewards = $this->template->calculateActualRewards($this->user);
+            // Pure balance top-ups are not subscription purchases.
+            if (isset($actualRewards['plan_id']) || !empty($actualRewards['expire_days'])
+                || !empty($actualRewards['transfer_enable']) || !empty($actualRewards['reset_package'])
+                || !empty($actualRewards['device_limit'])) {
+                app(\App\Services\Realname\RealnamePolicy::class)->purchase($this->user);
+            }
 
             if ($this->template->type === GiftCardTemplate::TYPE_MYSTERY) {
                 $this->code->setActualRewards($actualRewards);

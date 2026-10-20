@@ -130,6 +130,7 @@ class UserController extends Controller
 
     public function getSubscribe(Request $request)
     {
+        app(\App\Services\Realname\RealnamePolicy::class)->subscription($request->user());
         $user = User::where('id', $request->user()->id)
             ->select([
                 'plan_id',
@@ -163,6 +164,7 @@ class UserController extends Controller
 
     public function resetSecurity(Request $request)
     {
+        app(\App\Services\Realname\RealnamePolicy::class)->subscription($request->user());
         $user = $request->user();
         $user->uuid = Helper::guid(true);
         $user->token = Helper::guid();

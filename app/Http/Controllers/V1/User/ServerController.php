@@ -13,6 +13,7 @@ class ServerController extends Controller
 {
     public function fetch(Request $request)
     {
+        app(\App\Services\Realname\RealnamePolicy::class)->subscription($request->user());
         $user = User::find($request->user()->id);
         $servers = [];
         $userService = new UserService();
