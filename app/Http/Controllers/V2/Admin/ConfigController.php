@@ -171,6 +171,11 @@ class ConfigController extends Controller
             ],
             'safe' => [
                 'email_verify' => (bool) admin_setting('email_verify', 0),
+                'real_name_verify' => (bool) admin_setting('real_name_verify', 0),
+                'alipay_real_name_app_id' => admin_setting('alipay_real_name_app_id', ''),
+                'alipay_real_name_private_key' => admin_setting('alipay_real_name_private_key', ''),
+                'alipay_real_name_public_key' => admin_setting('alipay_real_name_public_key', ''),
+                'alipay_real_name_redirect_uri' => admin_setting('alipay_real_name_redirect_uri', ''),
                 'safe_mode_enable' => (bool) admin_setting('safe_mode_enable', 0),
                 'secure_path' => admin_setting('secure_path', admin_setting('frontend_admin_path', hash('crc32b', config('app.key')))),
                 'email_whitelist_enable' => (bool) admin_setting('email_whitelist_enable', 0),

@@ -4,6 +4,7 @@ namespace App\Http\Routes\V1;
 use App\Http\Controllers\V1\Guest\CommController;
 use App\Http\Controllers\V1\Guest\PaymentController;
 use App\Http\Controllers\V1\Guest\PlanController;
+use App\Http\Controllers\V1\Guest\RealNameController;
 use App\Http\Controllers\V1\Guest\TelegramController;
 use Illuminate\Contracts\Routing\Registrar;
 
@@ -22,6 +23,8 @@ class GuestRoute
             $router->match(['get', 'post'], '/payment/notify/{method}/{uuid}', [PaymentController::class, 'notify']);
             // Comm
             $router->get('/comm/config', [CommController::class, 'config']);
+            // Real name (Alipay OAuth callback)
+            $router->get('/realName/callback', [RealNameController::class, 'callback']);
         });
     }
 }

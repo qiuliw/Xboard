@@ -81,6 +81,7 @@ class AppController extends Controller
                 'tos_url' => admin_setting('tos_url', 'https://example.com/tos'), // 服务条款 URL
                 'privacy_policy_url' => admin_setting('app_privacy_policy_url', 'https://example.com/privacy'), // 隐私政策 URL
                 'is_email_verify' => (int) admin_setting('email_verify', 1), // 是否开启邮箱验证 (0/1)
+                'is_real_name_verify' => (int) admin_setting('real_name_verify', 0), // 是否开启实名认证 (0/1)
                 'is_invite_force' => (int) admin_setting('invite_force', 0), // 是否强制邀请码 (0/1)
                 'email_whitelist_suffix' => (int) admin_setting('email_whitelist_suffix', 0), // 邮箱白名单后缀 (0/1)
                 'is_captcha' => (int) admin_setting('captcha_enable', 1), // 是否开启验证码 (0/1)

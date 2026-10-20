@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Server;
 use App\Protocols\General;
 use App\Services\Plugin\HookManager;
+use App\Services\RealName\RealNameService;
 use App\Services\ServerService;
 use App\Services\UserService;
 use App\Utils\Helper;
@@ -42,6 +43,15 @@ class ClientController extends Controller
 
         $user = $request->user();
         $userService = new UserService();
+        $realNameService = app(RealNameService::class);
+
+        if ($realNameService->isRequired() && !$realNameService->isVerified($user)) {
+            HookManager::call('client.subscribe.unavailable');
+            return response('real name verification required', 403, [
+                'Content-Type' => 'text/plain',
+                'X-Real-Name-Required' => '1',
+            ]);
+        }
 
         if (!$userService->isAvailable($user)) {
             HookManager::call('client.subscribe.unavailable');

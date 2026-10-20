@@ -14,6 +14,7 @@ use App\Services\CouponService;
 use App\Services\OrderService;
 use App\Services\PaymentService;
 use App\Services\PlanService;
+use App\Services\RealName\RealNameService;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -66,6 +67,7 @@ class OrderController extends Controller
         ]);
 
         $user = User::findOrFail($request->user()->id);
+        app(RealNameService::class)->assertVerified($user);
         $userService = app(UserService::class);
 
         if ($userService->isNotCompleteOrderByUserId($user->id)) {
@@ -117,6 +119,8 @@ class OrderController extends Controller
 
     public function checkout(Request $request)
     {
+        app(RealNameService::class)->assertVerified($request->user());
+
         $tradeNo = $request->input('trade_no');
         $method = $request->input('method');
         $order = Order::where('trade_no', $tradeNo)

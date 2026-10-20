@@ -9,6 +9,7 @@ use App\Http\Controllers\V1\User\KnowledgeController;
 use App\Http\Controllers\V1\User\NoticeController;
 use App\Http\Controllers\V1\User\OrderController;
 use App\Http\Controllers\V1\User\PlanController;
+use App\Http\Controllers\V1\User\RealNameController;
 use App\Http\Controllers\V1\User\ServerController;
 use App\Http\Controllers\V1\User\StatController;
 use App\Http\Controllers\V1\User\TelegramController;
@@ -36,6 +37,9 @@ class UserRoute
             $router->post('/getQuickLoginUrl', [UserController::class, 'getQuickLoginUrl']);
             $router->get('/getActiveSession', [UserController::class, 'getActiveSession']);
             $router->post('/removeActiveSession', [UserController::class, 'removeActiveSession']);
+            // Real name
+            $router->get('/realName/status', [RealNameController::class, 'status']);
+            $router->post('/realName/preconsult', [RealNameController::class, 'preconsult']);
             // Order
             $router->post('/order/save', [OrderController::class, 'save']);
             $router->post('/order/checkout', [OrderController::class, 'checkout']);

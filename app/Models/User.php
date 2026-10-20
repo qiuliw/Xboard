@@ -28,6 +28,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $u 上行流量
  * @property int|null $d 下行流量
  * @property int|null $banned 是否封禁
+ * @property bool $real_name_verified 是否已实名
+ * @property string|null $real_name 实名姓名
+ * @property string|null $id_number_hash 身份证号哈希
+ * @property string|null $id_number_mask 身份证号脱敏
+ * @property int|null $real_name_verified_at 实名通过时间
  * @property int|null $remind_expire 到期提醒
  * @property int|null $remind_traffic 流量提醒
  * @property int|null $expired_at 过期时间
@@ -69,6 +74,7 @@ class User extends Authenticatable
         'created_at' => 'timestamp',
         'updated_at' => 'timestamp',
         'banned' => 'boolean',
+        'real_name_verified' => 'boolean',
         'is_admin' => 'boolean',
         'is_staff' => 'boolean',
         'remind_expire' => 'boolean',
@@ -78,7 +84,7 @@ class User extends Authenticatable
         'next_reset_at' => 'timestamp',
         'last_reset_at' => 'timestamp',
     ];
-    protected $hidden = ['password'];
+    protected $hidden = ['password', 'id_number_hash'];
 
     public const COMMISSION_TYPE_SYSTEM = 0;
     public const COMMISSION_TYPE_PERIOD = 1;

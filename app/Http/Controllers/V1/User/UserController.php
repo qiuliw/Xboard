@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\Auth\LoginService;
 use App\Services\AuthService;
 use App\Services\Plugin\HookManager;
+use App\Services\RealName\RealNameService;
 use App\Services\UserService;
 use App\Utils\CacheKey;
 use App\Utils\Helper;
@@ -94,6 +95,10 @@ class UserController extends Controller
                 'last_login_at',
                 'created_at',
                 'banned',
+                'real_name_verified',
+                'real_name',
+                'id_number_mask',
+                'real_name_verified_at',
                 'remind_expire',
                 'remind_traffic',
                 'expired_at',
@@ -110,6 +115,8 @@ class UserController extends Controller
             return $this->fail([400, __('The user does not exist')]);
         }
         $user['avatar_url'] = 'https://cdn.v2ex.com/gravatar/' . md5($user->email) . '?s=64&d=identicon';
+        $user['is_real_name_verified'] = (bool) $user->real_name_verified ? 1 : 0;
+        $user['is_real_name_verify_required'] = app(RealNameService::class)->isRequired() ? 1 : 0;
         return $this->success($user);
     }
 
