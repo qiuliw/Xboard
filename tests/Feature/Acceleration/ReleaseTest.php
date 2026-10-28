@@ -14,6 +14,18 @@ use Illuminate\Support\Str;
 
 class ReleaseTest extends AccelerationScenarioTestCase
 {
+    public function test_usage_counters_do_not_invalidate_an_activated_configuration(): void
+    {
+        $service = app(ReleaseService::class);
+        $release = $service->prepare($this->user, ['demo'], 0, 'test-key-00000001');
+        $this->app->instance(NodeDeploymentVerifier::class, new class extends NodeDeploymentVerifier {
+            public function verify(string $releaseId): DeploymentEvidence { return new DeploymentEvidence([1 => 1], now(), true); }
+        });
+        $service->activate($release['release_id']);
+        DB::table('v2_server')->update(['u' => 12, 'd' => 34, 'updated_at' => now()->addSecond()]);
+        $this->assertSame(1, $service->activeConfig($this->user)['version']);
+    }
+
     public function test_pending_is_idempotent_and_cannot_be_activated_without_node_evidence(): void
     {
         $service = app(ReleaseService::class);
@@ -37,7 +49,7 @@ class ReleaseTest extends AccelerationScenarioTestCase
         $this->assertSame(1, DB::table('accel_lanes')->value('generation'));
         $this->assertFalse(now()->gte($saved->valid_until));
         $node = Server::first();
-        $this->assertSame(json_decode($saved->snapshot, true)[1]['server_hash'], hash('sha256', json_encode($node->attributesToArray())));
+        $this->assertSame(json_decode($saved->snapshot, true)[1]['server_hash'], \App\Services\Acceleration\LaneConfiguration::hash($node));
         $service->activate($release['release_id']);
         $config = $service->activeConfig($this->user);
         $this->assertSame(1, $config['version']);

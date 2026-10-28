@@ -108,6 +108,6 @@ class ReleaseService
             'applications' => $apps, 'entrances' => array_values($entrances), 'mihomo' => ['proxies' => array_values($proxies)]];
     }
 
-    private function serverHash(Server $server): string { return hash('sha256', json_encode($server->attributesToArray())); }
+    private function serverHash(Server $server): string { return LaneConfiguration::hash($server); }
     private function summary(object $release): array { return ['release_id' => $release->id, 'version' => $release->version, 'status' => $release->status]; }
 }

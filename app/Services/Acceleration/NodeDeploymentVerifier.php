@@ -26,7 +26,7 @@ class NodeDeploymentVerifier
             $resource = $lane ? DB::table('accel_resources')->where('id', $lane->resource_id)->first() : null;
             $server = $lane ? Server::find($lane->server_id) : null;
             if (!$lane || !$resource || !$server || $lane->status !== 'healthy' || $resource->status !== 'healthy'
-                || $lane->generation !== $expected['generation'] || hash('sha256', json_encode($server->attributesToArray())) !== $expected['server_hash']
+                || $lane->generation !== $expected['generation'] || LaneConfiguration::hash($server) !== $expected['server_hash']
                 || !filter_var($resource->public_ip, FILTER_VALIDATE_IP) || !app(LaneAuthorization::class)->canUse($user, $server)
                 || !DB::table('accel_grants')->where('release_id', $releaseId)->where('user_id', $user->id)->where('lane_id', $id)->where('valid_until', '>', now())->exists()) return $failed();
             $method = match ($server->type) {

@@ -47,7 +47,11 @@ class UniProxyController extends Controller
 
         $node = $this->getNodeInfo($request);
 
-        ServerService::processTraffic($node, $res);
+        if ($node->accel_managed) {
+            app(\App\Services\Acceleration\TrafficReportService::class)->accept($node, (string) $request->header('X-Report-ID'), $res);
+        } else {
+            ServerService::processTraffic($node, $res);
+        }
 
         return $this->success(true);
     }
