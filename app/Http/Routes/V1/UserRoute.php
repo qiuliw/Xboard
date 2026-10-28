@@ -21,6 +21,16 @@ class UserRoute
 {
     public function map(Registrar $router)
     {
+        $router->group(['prefix' => 'user/acceleration', 'middleware' => ['auth:sanctum', 'throttle:30,1']], function ($router) {
+            $controller = \App\Http\Controllers\V1\User\AccelerationController::class;
+            $router->get('/catalog', [$controller, 'catalog']);
+            $router->get('/state', [$controller, 'state']);
+            $router->put('/preferences', [$controller, 'preferences']);
+            $router->post('/prepare', [$controller, 'prepare']);
+            $router->get('/config', [$controller, 'config']);
+            $router->post('/ack', [$controller, 'ack']);
+            $router->post('/measurements', [$controller, 'measurements']);
+        });
         $router->group([
             'prefix' => 'user',
             'middleware' => 'user'

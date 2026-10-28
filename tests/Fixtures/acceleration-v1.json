@@ -1,0 +1,6 @@
+{
+  "realname_status": {"status":"success","message":"success","data":{"required":true,"verified":true,"real_name":null,"id_number_mask":null,"verified_at":1793145600},"error":null},
+  "catalog": {"schema_version":1,"rules_version":"test-1","applications":[{"id":"demo","name":"Demo","platforms":["windows"],"allowed_countries":["SG"],"domains":["service.example.test"],"process_names":["demo.exe"],"priority":10}]},
+  "config": {"schema_version":1,"version":1,"rules_version":"test-1","valid_until":"2026-10-29T00:00:00Z","applications":[{"id":"demo","lane_id":"1","proxy_names":["accel-lane-1"]}],"entrances":[{"id":"1","host":"entry.example.test","port":443,"probe":"tcp"}],"mihomo":{"proxies":[{"name":"accel-lane-1","type":"ss","server":"entry.example.test","port":443,"cipher":"aes-128-gcm","password":"test-only-not-a-real-credential"}]}},
+  "realname_error": {"status":"fail","message":"REALNAME_REQUIRED","data":null,"error":null,"error_code":"REALNAME_REQUIRED"}
+}

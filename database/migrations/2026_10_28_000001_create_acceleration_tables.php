@@ -30,7 +30,7 @@ return new class extends Migration {
         Schema::create('accel_releases', function (Blueprint $t) {
             $t->string('id', 64)->primary(); $t->unsignedBigInteger('user_id')->index();
             $t->string('idempotency_key', 128); $t->string('payload_hash', 64);
-            $t->unsignedInteger('version'); $t->string('status');
+            $t->unsignedInteger('version'); $t->string('status'); $t->string('rules_version', 64)->default('1');
             $t->json('snapshot')->nullable(); $t->timestamp('valid_until')->nullable();
             $t->timestamps(); $t->unique(['user_id', 'idempotency_key']);
         });
