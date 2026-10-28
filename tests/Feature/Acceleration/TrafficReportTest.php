@@ -8,6 +8,19 @@ use Illuminate\Support\Facades\Redis;
 
 class TrafficReportTest extends AccelerationScenarioTestCase
 {
+    public function test_managed_http_push_requires_a_report_id_and_replays_without_rebilling(): void
+    {
+        Redis::shouldReceive('sadd')->andReturn(1);
+        admin_setting(['server_token' => 'isolated-node-test-token']);
+        $url = '/api/v1/server/UniProxy/push?node_id=' . Server::first()->id . '&node_type=shadowsocks&token=isolated-node-test-token';
+        $body = [$this->user->id => [12, 34]];
+        $this->postJson($url, $body)->assertStatus(428)->assertJsonPath('error_code', 'REPORT_ID_REQUIRED');
+        for ($i = 0; $i < 2; $i++) {
+            $this->withHeader('X-Report-ID', 'report-http-00001')->postJson($url, $body)->assertOk();
+        }
+        $this->assertSame(12, $this->user->fresh()->u);
+    }
+
     public function test_retry_is_counted_once_but_identical_new_samples_are_counted_again(): void
     {
         Redis::shouldReceive('sadd')->andReturn(1);
