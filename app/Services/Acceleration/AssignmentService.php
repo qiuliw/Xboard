@@ -24,7 +24,10 @@ class AssignmentService
                 $resources = DB::table('accel_resources')->where('status', 'healthy')->whereIn('country', json_decode($app->countries, true))->orderBy('id')->lockForUpdate()->get();
                 $lane = null;
                 foreach ($resources as $resource) {
-                    $lanes = DB::table('accel_lanes')->where('resource_id', $resource->id)->where('status', 'healthy')->orderBy('id')->get();
+                    // Under MySQL REPEATABLE READ, resource locks do not refresh
+                    // consistent-read snapshots. All capacity inputs use current reads.
+                    $allLanes = DB::table('accel_lanes')->where('resource_id', $resource->id)->orderBy('id')->lockForUpdate()->get();
+                    $lanes = $allLanes->where('status', 'healthy');
                     if ($current) {
                         $lane = $lanes->firstWhere('id', $current->lane_id);
                         if ($lane) break;
@@ -32,7 +35,7 @@ class AssignmentService
                     }
                     $keys = [];
                     foreach (['accel_assignments', 'accel_reservations'] as $table) {
-                        foreach (DB::table($table)->whereIn('lane_id', $lanes->pluck('id'))->get() as $binding) {
+                        foreach (DB::table($table)->whereIn('lane_id', $allLanes->pluck('id'))->orderBy('id')->lockForUpdate()->get() as $binding) {
                             $keys[$binding->user_id . ':' . $binding->application_id] = true;
                         }
                     }

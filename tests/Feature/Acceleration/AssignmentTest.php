@@ -48,4 +48,16 @@ class AssignmentTest extends AccelerationTestCase
         }
         $this->assertSame(1, DB::table('accel_reservations')->count());
     }
+
+    public function test_unhealthy_lane_commitments_still_consume_resource_capacity(): void
+    {
+        $one=new User();$one->id=10;
+        $two=new User();$two->id=20;
+        $service=app(AssignmentService::class);
+        $service->reserve($one,['demo'],'one');
+        DB::table('accel_lanes')->insert(['id'=>2,'server_id'=>2,'resource_id'=>1,'host'=>'entry2.example.test','port'=>443,'status'=>'healthy']);
+        DB::table('accel_lanes')->where('id',1)->update(['status'=>'unhealthy']);
+        $this->expectException(\App\Services\Acceleration\AccelerationException::class);
+        $service->reserve($two,['demo'],'two');
+    }
 }
