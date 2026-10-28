@@ -14,6 +14,7 @@ class LaneAuthorization
         if (!$node->getAttribute('accel_managed')) return true;
         if (!$user->isAvailable() || !in_array((string) $user->group_id, array_map('strval', $node->group_ids ?? []), true)) return false;
         return DB::table('accel_grants')->join('accel_lanes', 'accel_lanes.id', '=', 'accel_grants.lane_id')
+            ->join('accel_resources', 'accel_resources.id', '=', 'accel_lanes.resource_id')->where('accel_resources.status', 'healthy')
             ->where('accel_lanes.server_id', $node->id)->where('accel_lanes.status', 'healthy')
             ->where('accel_grants.user_id', $user->id)->where('accel_grants.valid_until', '>', now())->exists();
     }
@@ -23,6 +24,8 @@ class LaneAuthorization
         if (!$node->getAttribute('accel_managed')) return $afterHook;
         $eligibleIds = $eligibleBeforeHook->pluck('id')->map(fn ($id) => (int) $id)->all();
         $ids = DB::table('accel_grants')->join('accel_lanes', 'accel_lanes.id', '=', 'accel_grants.lane_id')
+            ->join('accel_resources', 'accel_resources.id', '=', 'accel_lanes.resource_id')->where('accel_resources.status', 'healthy')
+            ->join('v2_user', 'v2_user.id', '=', 'accel_grants.user_id')->whereNotNull('v2_user.plan_id')
             ->where('accel_lanes.server_id', $node->id)->where('accel_lanes.status', 'healthy')
             ->where('accel_grants.valid_until', '>', now())->pluck('accel_grants.user_id')->map(fn ($id) => (int) $id)->all();
         // Return original eligible records: hooks may not replace credentials for a valid ID either.
@@ -33,8 +36,9 @@ class LaneAuthorization
 
     public function filterServers(User $user, array $servers): array
     {
-        return array_values(array_filter($servers, function ($row) use ($user) {
-            $node = Server::find($row['id'] ?? null);
+        $nodes = Server::whereIn('id', array_column($servers, 'id'))->get()->keyBy('id');
+        return array_values(array_filter($servers, function ($row) use ($user, $nodes) {
+            $node = $nodes->get($row['id'] ?? null);
             return $node && $this->canUse($user, $node);
         }));
     }

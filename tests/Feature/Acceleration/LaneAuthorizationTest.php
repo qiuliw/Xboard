@@ -78,4 +78,12 @@ class LaneAuthorizationTest extends AccelerationTestCase
         });
         $this->assertSame($user->uuid, ServerService::getAvailableUsers($node)->first()->uuid);
     }
+
+    public function test_user_losing_plan_cannot_keep_a_lane_grant(): void
+    {
+        [$user,$node]=$this->fixture();
+        DB::table('accel_grants')->insert(['user_id'=>$user->id,'lane_id'=>1,'release_id'=>'r','valid_until'=>now()->addMinute()]);
+        DB::table('v2_user')->where('id',$user->id)->update(['plan_id'=>null]);
+        $this->assertCount(0,ServerService::getAvailableUsers($node));
+    }
 }
