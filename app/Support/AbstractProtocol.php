@@ -64,6 +64,9 @@ abstract class AbstractProtocol
         $this->userAgent = $userAgent;
         $this->protocolRequirements = $this->normalizeProtocolRequirements($this->protocolRequirements);
         $this->servers = HookManager::filter('protocol.servers.filtered', $this->filterServersByVersion());
+        if ($user instanceof \App\Models\User) {
+            $this->servers = app(\App\Services\Acceleration\LaneAuthorization::class)->filterServers($user, $this->servers);
+        }
     }
 
     /**

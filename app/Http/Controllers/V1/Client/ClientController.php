@@ -68,6 +68,7 @@ class ClientController extends Controller
             $servers = HookManager::filter('client.subscribe.servers', $servers, $user, $request);
         }
 
+        $servers = app(\App\Services\Acceleration\LaneAuthorization::class)->filterServers($user, $servers);
         $clientInfo = $this->getClientInfo($request);
 
         $requestedTypes = $this->parseRequestedTypes($request->input('types'));

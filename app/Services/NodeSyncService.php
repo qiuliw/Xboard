@@ -64,7 +64,7 @@ class NodeSyncService
             if (!self::isNodeOnline($server->id))
                 continue;
 
-            if ($user->isAvailable()) {
+            if ($user->isAvailable() && app(\App\Services\Acceleration\LaneAuthorization::class)->canUse($user, $server)) {
                 self::push($server->id, 'sync.user.delta', [
                     'action' => 'add',
                     'users' => [

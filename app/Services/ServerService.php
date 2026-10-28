@@ -79,7 +79,7 @@ class ServerService
             return $server;
         })->toArray();
 
-        return $servers;
+        return app(\App\Services\Acceleration\LaneAuthorization::class)->filterServers($user, $servers);
     }
 
     /**
@@ -108,7 +108,9 @@ class ServerService
                 'device_limit'
             ])
             ->get();
-        return HookManager::filter('server.users.get', $users, $node);
+        $beforeHook = $users->map(fn ($user) => clone $user);
+        $filtered = HookManager::filter('server.users.get', $users, $node);
+        return app(\App\Services\Acceleration\LaneAuthorization::class)->filterUsers($node, $beforeHook, collect($filtered));
     }
 
     // 获取路由规则
